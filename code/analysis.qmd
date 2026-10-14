@@ -125,11 +125,14 @@ average employer premium for family coverage rose 119% from 1999 to 2008, a
 little more than doubling
 ([KFF Employer Health Benefits 2008 Annual Survey](https://www.kff.org/wp-content/uploads/2013/04/7790.pdf)).
 The early years, with steep premium increases and a sharp drop in enrollment,
-look like the start of a death spiral. But enrollment leveled off rather than
-continuing to collapse, and the market was still operating in 2008 with
+look like the start of a death spiral. After 2002, however, enrollment leveled
+off, and the market was still operating in 2008 with
 `r comma(nj_2008$enrollment)` people enrolled, at much higher premiums than it
-started with. I read this as partial unraveling that falls short of a full
-death spiral.
+started with. As of 2008, the data could support either reading, a market still
+unraveling slowly or one that had settled at a smaller, higher-cost pool. In
+retrospect, the market stabilized, due in part to policies related to the ACA,
+so it was not a full death spiral. What matters most is supporting the verdict
+with the premium and enrollment trends.
 
 ## Question 2: Medicare Advantage and fee-for-service, 2008 to 2023
 
