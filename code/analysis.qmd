@@ -54,43 +54,49 @@ nj_long <- bind_rows(
     pivot_longer(c(bcbs_plan_d, aetna_plan_d, celtic_plan_c),
                  names_to = "series", values_to = "value") %>%
     mutate(panel = "Monthly family premium ($)",
-           series = recode(series, bcbs_plan_d = "BCBS Plan D",
-                           aetna_plan_d = "Aetna Plan D",
-                           celtic_plan_c = "Celtic Plan C")),
+           series = case_match(series,
+                               "bcbs_plan_d" ~ "BCBS Plan D",
+                               "aetna_plan_d" ~ "Aetna Plan D",
+                               "celtic_plan_c" ~ "Celtic Plan C")),
   nj %>%
     transmute(year, series = "Enrollment", value = enrollment,
               panel = "Year-end standard enrollment")
 )
 
-ggplot(nj_long, aes(year, value, group = series)) +
-  geom_line(linewidth = 1) +
-  geom_point() +
-  geom_text(data = nj_long %>% filter(year == 2008, series != "Enrollment"),
-            aes(label = series), hjust = -0.1, size = 3.5) +
+ggplot(nj_long, aes(year, value, linetype = series, shape = series)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
   facet_wrap(~panel, ncol = 1, scales = "free_y") +
-  scale_x_continuous(breaks = 2000:2008, expand = expansion(mult = c(0.03, 0.18))) +
+  scale_linetype_manual(values = c("BCBS Plan D" = "solid", "Aetna Plan D" = "dashed",
+                                   "Celtic Plan C" = "dotted", "Enrollment" = "solid"),
+                        breaks = c("BCBS Plan D", "Aetna Plan D", "Celtic Plan C")) +
+  scale_shape_manual(values = c("BCBS Plan D" = 16, "Aetna Plan D" = 17,
+                                "Celtic Plan C" = 15, "Enrollment" = 16),
+                     breaks = c("BCBS Plan D", "Aetna Plan D", "Celtic Plan C")) +
+  scale_x_continuous(breaks = 2000:2008) +
   scale_y_continuous(labels = comma) +
-  labs(x = "Year", y = NULL,
+  labs(x = "Year", y = NULL, linetype = NULL, shape = NULL,
        title = "NJ individual market: premiums rise as enrollment falls") +
-  theme_bw()
+  theme_bw() +
+  theme(legend.position = "bottom")
 ```
 
 ```{r}
 #| include: false
-first <- nj %>% filter(year == 2000)
-last <- nj %>% filter(year == 2008)
+nj_2000 <- nj %>% filter(year == 2000)
+nj_2008 <- nj %>% filter(year == 2008)
 ```
 
 All three premiums rise sharply over the period. The BCBS Plan D premium goes
-from \$`r comma(first$bcbs_plan_d)` a month in 2000 to
-\$`r comma(last$bcbs_plan_d)` in 2008, about
-`r round(last$bcbs_plan_d / first$bcbs_plan_d, 1)` times as high. Aetna rises
-from \$`r comma(first$aetna_plan_d)` to \$`r comma(last$aetna_plan_d)`, and
-Celtic from \$`r comma(first$celtic_plan_c)` to \$`r comma(last$celtic_plan_c)`,
-with Celtic's premium unchanged from 2003 on. Over the same years, year-end
-enrollment falls every year, from `r comma(first$enrollment)` to
-`r comma(last$enrollment)`, a decline of about
-`r percent(1 - last$enrollment / first$enrollment)`.
+from \$`r comma(nj_2000$bcbs_plan_d)` a month in 2000 to
+\$`r comma(nj_2008$bcbs_plan_d)` in 2008, about
+`r round(nj_2008$bcbs_plan_d / nj_2000$bcbs_plan_d, 1)` times as high. Aetna rises
+from \$`r comma(nj_2000$aetna_plan_d)` to \$`r comma(nj_2008$aetna_plan_d)`, and
+Celtic from \$`r comma(nj_2000$celtic_plan_c)` to \$`r comma(nj_2008$celtic_plan_c)`,
+with Celtic's premium nearly doubling in 2003 and unchanged after that. Over the same years, year-end
+enrollment falls every year, from `r comma(nj_2000$enrollment)` to
+`r comma(nj_2008$enrollment)`, a decline of about
+`r percent(1 - nj_2008$enrollment / nj_2000$enrollment)`.
 
 ### (c) Interpret it
 
@@ -100,7 +106,7 @@ had to accept every applicant and charge everyone in a plan the same premium.
 When premiums rise, the people most likely to drop coverage are the healthiest,
 who expect to use the least care and so get the least value from insurance. Their
 exit leaves a sicker and more expensive pool, which raises the insurer's average
-cost and leads to another premium increase the next year, and the cycle repeats.
+cost and leads to another premium increase the next year.
 
 ### (d) Verdict
 
@@ -110,14 +116,15 @@ without any change in who was enrolled. The IHC market is also small, so a chang
 by a single insurer, such as a new plan design or a decision to stop marketing a
 plan, can move premiums and enrollment on its own.
 
-Even so, the size of the changes points to selection. The BCBS Plan D premium
-rose about 4.5 times in eight years. By comparison, the average employer premium
+Even so, the size of the changes points to selection. In eight years the BCBS
+Plan D premium rose to about 4.5 times its 2000 level. By comparison, the average employer premium
 for family coverage rose 119% from 1999 to 2008, a little more than doubling
 ([KFF Employer Health Benefits 2008 Annual Survey](https://www.kff.org/wp-content/uploads/2013/04/7790.pdf)). Meanwhile,
 enrollment fell by nearly half and kept falling every year. That combination is
-hard to explain without healthier people leaving the pool. I read it as a death
-spiral in progress, a market unraveling steadily rather than collapsing at once,
-since `r comma(last$enrollment)` people were still enrolled in 2008.
+hard to explain without healthier people leaving the pool. Taken together, the
+data fit a slow death spiral. Enrollment fell steadily for eight years, but the
+market had not collapsed by 2008, when `r comma(nj_2008$enrollment)` people were
+still enrolled.
 
 ## Question 2: Medicare Advantage and fee-for-service, 2008 to 2023
 
@@ -132,6 +139,7 @@ ffs <- read_csv("../data/medicare-ffs-costs.csv", col_types = cols(fips = "c"))
 #| include: false
 n_pen <- nrow(pen)
 n_ffs <- nrow(ffs)
+n_ffs_clean <- ffs %>% filter(!is.na(ffs_enrollment), !is.na(ffs_spending)) %>% nrow()
 na_ma <- sum(is.na(pen$ma_enrolled))
 na_ffs <- sum(is.na(ffs$ffs_enrollment) | is.na(ffs$ffs_spending))
 ```
@@ -157,14 +165,16 @@ county <- pen %>%
 n_county <- nrow(county)
 ```
 
-The merged file has `r comma(n_county)` county-years. A national rate is not the
+The merged file has `r comma(n_county)` county-years, compared with
+`r comma(n_ffs_clean)` FFS rows after dropping the missing values, so every
+remaining FFS county-year finds a match in the penetration file. A national rate is not the
 average of the county rates, because that would give a small rural county the same
 weight as Los Angeles. Instead, I add up the counts across counties in each year
 and then divide. National MA penetration is total MA enrollment over total
 eligibles, and FFS spending per enrollee is total FFS spending over total FFS
 enrollment. Spending is converted to numeric before summing, since national FFS
-spending runs to hundreds of billions of dollars, beyond the largest value R can
-hold as an integer.
+spending runs to hundreds of billions of dollars, beyond the largest integer R
+can store.
 
 ```{r}
 national <- county %>%
@@ -187,6 +197,8 @@ national %>%
             `MA penetration (%)` = 100 * ma_penetration,
             `FFS spending per enrollee ($)` = ffs_per_enrollee) %>%
   pivot_longer(-year, names_to = "series", values_to = "value") %>%
+  mutate(series = factor(series, levels = c("MA penetration (%)",
+                                            "FFS spending per enrollee ($)"))) %>%
   ggplot(aes(year, value)) +
   geom_line(linewidth = 1) +
   geom_point() +
@@ -211,8 +223,9 @@ MA penetration rises every year, from
 after 2018. FFS spending per enrollee, in nominal dollars, is nearly flat from
 2008 to 2016, at `r dollar(n08$ffs_per_enrollee, accuracy = 1)` and
 `r dollar(n16$ffs_per_enrollee, accuracy = 1)`. It then rises to
-`r dollar(n23$ffs_per_enrollee, accuracy = 1)` by 2023, with a dip in 2020, when
-the COVID pandemic disrupted care, and a jump in 2021.
+`r dollar(n23$ffs_per_enrollee, accuracy = 1)` by 2023, with a dip in 2020,
+consistent with the disruption of care during the COVID pandemic, and a jump in
+2021.
 
 ### (b) Read them together
 
@@ -220,8 +233,8 @@ The two series are consistent with healthier, lower-cost beneficiaries moving
 into Medicare Advantage and sicker, higher-cost beneficiaries staying in
 fee-for-service. As healthier people leave traditional Medicare, the people who
 remain are more expensive on average, which pushes up FFS spending per enrollee.
-This is adverse selection in the choice between two kinds of coverage rather than
-in the choice of whether to insure at all. The national series cannot establish
+This is adverse selection between two kinds of coverage, whereas in the model
+from class people choose whether to insure at all. The national series cannot establish
 selection on its own, however. FFS spending per enrollee also moves with medical
 prices and use, and it was nearly flat for most of the 2010s even as penetration
 kept rising, so the two series do not move together year by year.
@@ -236,8 +249,8 @@ With a flat payment per person, a plan would profit from attracting healthy
 enrollees and avoiding sick ones. Tying payment to expected cost reduces that
 reward, so plans have less reason to compete by choosing whom they enroll. Risk
 adjustment is imperfect, however. Because payment depends on recorded diagnoses,
-plans have an incentive to record diagnoses more completely, which raises risk
-scores and payments without enrollees being any sicker.
+plans have an incentive to record diagnoses more completely, which can raise risk
+scores and payments without the enrollees being any sicker.
 
 ### (d) Beyond risk adjustment
 
