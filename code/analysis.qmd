@@ -130,7 +130,8 @@ little more than doubling
 ([KFF Employer Health Benefits 2008 Annual Survey](https://www.kff.org/wp-content/uploads/2013/04/7790.pdf)).
 The early years, with steep premium increases and a sharp drop in enrollment,
 look like the start of a death spiral. After 2002, however, enrollment leveled
-off, and the market was still operating in 2008 with
+off and then declined only gradually, and the market was still operating in 2008
+with
 `r comma(nj_2008$enrollment)` people enrolled, at much higher premiums than it
 started with. As of 2008, the data could support either reading, a market still
 unraveling slowly or one that had settled at a smaller, higher-cost pool. In
