@@ -10,8 +10,8 @@ repository for an empirical assignment.
 - `code/analysis.qmd` is the Quarto source, with a short setup chunk and then one
   section per question. Each part has its code, its output, and a few sentences
   that state the result.
-- `code/report.html` is the rendered report. Download it and open it in a browser
-  to read the solutions without running anything.
+- `code/report.pdf` is the rendered report. Click it on GitHub to read the
+  solutions without running anything.
 - `nj-ihc.csv` is the New Jersey dataset built for Question 1. It sits outside
   `data/` so that it is included in the repository.
 - `data/` holds the two Medicare files for Question 2. Like in the template, git

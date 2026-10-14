@@ -2,11 +2,12 @@
 title: "Econ 372 Homework 1: Adverse Selection in Real Markets"
 author: "Solutions"
 format:
-  html:
+  pdf:
     toc: true
-    embed-resources: true
-    theme: cosmo
-    output-file: report.html
+    pdf-engine: xelatex
+    geometry: "margin=1in"
+    fig-pos: "H"
+    output-file: report.pdf
 execute:
   message: false
   warning: false
@@ -35,10 +36,11 @@ The file is `nj-ihc.csv` at the top of this repository, outside the gitignored
 ```{r}
 nj <- read_csv("../nj-ihc.csv")
 
-kable(nj, format.args = list(big.mark = ","),
+kable(nj %>% mutate(year = as.character(year)),
+      format.args = list(big.mark = ","),
       col.names = c("Year", "BCBS Plan D", "Aetna Plan D", "Celtic Plan C",
                     "Enrollment"),
-      caption = "Monthly family premiums ($) and year-end standard enrollment, NJ IHC")
+      caption = "Monthly family premiums (dollars) and year-end enrollment")
 ```
 
 ### (b) Make the figure
@@ -67,12 +69,14 @@ ggplot(nj_long, aes(year, value, linetype = series, shape = series)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 2) +
   facet_wrap(~panel, ncol = 1, scales = "free_y") +
-  scale_linetype_manual(values = c("BCBS Plan D" = "solid", "Aetna Plan D" = "dashed",
-                                   "Celtic Plan C" = "dotted", "Enrollment" = "solid"),
-                        breaks = c("BCBS Plan D", "Aetna Plan D", "Celtic Plan C")) +
-  scale_shape_manual(values = c("BCBS Plan D" = 16, "Aetna Plan D" = 17,
-                                "Celtic Plan C" = 15, "Enrollment" = 16),
-                     breaks = c("BCBS Plan D", "Aetna Plan D", "Celtic Plan C")) +
+  scale_linetype_manual(
+    values = c("BCBS Plan D" = "solid", "Aetna Plan D" = "dashed",
+               "Celtic Plan C" = "dotted", "Enrollment" = "solid"),
+    breaks = c("BCBS Plan D", "Aetna Plan D", "Celtic Plan C")) +
+  scale_shape_manual(
+    values = c("BCBS Plan D" = 16, "Aetna Plan D" = 17,
+               "Celtic Plan C" = 15, "Enrollment" = 16),
+    breaks = c("BCBS Plan D", "Aetna Plan D", "Celtic Plan C")) +
   scale_x_continuous(breaks = 2000:2008) +
   scale_y_continuous(labels = comma) +
   labs(x = "Year", y = NULL, linetype = NULL, shape = NULL,
@@ -139,8 +143,10 @@ with the premium and enrollment trends.
 ### (a) Build the national series
 
 ```{r}
-pen <- read_csv("../data/medicare-ma-penetration.csv", col_types = cols(fips = "c"))
-ffs <- read_csv("../data/medicare-ffs-costs.csv", col_types = cols(fips = "c"))
+pen <- read_csv("../data/medicare-ma-penetration.csv",
+                col_types = cols(fips = "c"))
+ffs <- read_csv("../data/medicare-ffs-costs.csv",
+                col_types = cols(fips = "c"))
 ```
 
 ```{r}
@@ -187,8 +193,10 @@ can store.
 ```{r}
 national <- county %>%
   group_by(year) %>%
-  summarize(ma_penetration = sum(ma_enrolled) / sum(total_eligibles),
-            ffs_per_enrollee = sum(as.numeric(ffs_spending)) / sum(ffs_enrollment))
+  summarize(
+    ma_penetration = sum(ma_enrolled) / sum(total_eligibles),
+    ffs_per_enrollee = sum(as.numeric(ffs_spending)) / sum(ffs_enrollment)
+  )
 
 kable(national %>%
         mutate(ma_penetration = percent(ma_penetration, accuracy = 0.1),
