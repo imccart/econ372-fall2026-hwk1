@@ -3,19 +3,19 @@ title: "Econ 372 Homework 1: Adverse Selection in Real Markets"
 author: "Solutions"
 format:
   pdf:
-    toc: true
+    toc: false
     pdf-engine: xelatex
     geometry: "margin=1in"
     fig-pos: "H"
     output-file: report.pdf
 execute:
+  echo: false
   message: false
   warning: false
 ---
 
-## Setup
-
 ```{r}
+#| include: false
 library(tidyverse)
 library(scales)
 library(knitr)
@@ -186,9 +186,7 @@ average of the county rates, because that would give a small rural county the sa
 weight as Los Angeles. Instead, I add up the counts across counties in each year
 and then divide. National MA penetration is total MA enrollment over total
 eligibles, and FFS spending per enrollee is total FFS spending over total FFS
-enrollment. Spending is converted to numeric before summing, since national FFS
-spending runs to hundreds of billions of dollars, beyond the largest integer R
-can store.
+enrollment.
 
 ```{r}
 national <- county %>%

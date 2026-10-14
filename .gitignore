@@ -15,7 +15,8 @@ __pycache__/
 venv/
 
 # Quarto
-/.quarto/
+.quarto/
+code/.gitignore
 
 # OS
 .DS_Store
