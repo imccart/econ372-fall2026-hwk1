@@ -84,6 +84,8 @@ ggplot(nj_long, aes(year, value, linetype = series, shape = series)) +
 ```{r}
 #| include: false
 nj_2000 <- nj %>% filter(year == 2000)
+nj_2002 <- nj %>% filter(year == 2002)
+nj_2004 <- nj %>% filter(year == 2004)
 nj_2008 <- nj %>% filter(year == 2008)
 ```
 
@@ -93,10 +95,11 @@ from \$`r comma(nj_2000$bcbs_plan_d)` a month in 2000 to
 `r round(nj_2008$bcbs_plan_d / nj_2000$bcbs_plan_d, 1)` times as high. Aetna rises
 from \$`r comma(nj_2000$aetna_plan_d)` to \$`r comma(nj_2008$aetna_plan_d)`, and
 Celtic from \$`r comma(nj_2000$celtic_plan_c)` to \$`r comma(nj_2008$celtic_plan_c)`,
-with Celtic's premium nearly doubling in 2003 and unchanged after that. Over the same years, year-end
-enrollment falls every year, from `r comma(nj_2000$enrollment)` to
-`r comma(nj_2008$enrollment)`, a decline of about
-`r percent(1 - nj_2008$enrollment / nj_2000$enrollment)`.
+with Celtic's premium nearly doubling in 2003 and unchanged after that.
+Enrollment drops sharply at first, from `r comma(nj_2000$enrollment)` in 2000 to
+`r comma(nj_2002$enrollment)` in 2002, and then levels off, at
+`r comma(nj_2004$enrollment)` in 2004, before declining more gradually to
+`r comma(nj_2008$enrollment)` in 2008.
 
 ### (c) Interpret it
 
@@ -116,15 +119,17 @@ without any change in who was enrolled. The IHC market is also small, so a chang
 by a single insurer, such as a new plan design or a decision to stop marketing a
 plan, can move premiums and enrollment on its own.
 
-Even so, the size of the changes points to selection. In eight years the BCBS
-Plan D premium rose to about 4.5 times its 2000 level. By comparison, the average employer premium
-for family coverage rose 119% from 1999 to 2008, a little more than doubling
-([KFF Employer Health Benefits 2008 Annual Survey](https://www.kff.org/wp-content/uploads/2013/04/7790.pdf)). Meanwhile,
-enrollment fell by nearly half and kept falling every year. That combination is
-hard to explain without healthier people leaving the pool. Taken together, the
-data fit a slow death spiral. Enrollment fell steadily for eight years, but the
-market had not collapsed by 2008, when `r comma(nj_2008$enrollment)` people were
-still enrolled.
+Even so, the size of the changes points to some selection. In eight years the
+BCBS Plan D premium rose to about 4.5 times its 2000 level. By comparison, the
+average employer premium for family coverage rose 119% from 1999 to 2008, a
+little more than doubling
+([KFF Employer Health Benefits 2008 Annual Survey](https://www.kff.org/wp-content/uploads/2013/04/7790.pdf)).
+The early years, with steep premium increases and a sharp drop in enrollment,
+look like the start of a death spiral. But enrollment leveled off rather than
+continuing to collapse, and the market was still operating in 2008 with
+`r comma(nj_2008$enrollment)` people enrolled, at much higher premiums than it
+started with. I read this as partial unraveling that falls short of a full
+death spiral.
 
 ## Question 2: Medicare Advantage and fee-for-service, 2008 to 2023
 
