@@ -1,29 +1,123 @@
 ---
-title: "Econ 372 — Homework"
-author: "Your name here"
+title: "Econ 372 Homework 1: Adverse Selection in Real Markets"
+author: "Solutions"
 format:
   html:
     toc: true
     embed-resources: true
     theme: cosmo
-# To hand in a PDF instead, comment out the html block above and use:
-# format: pdf
+    output-file: report.html
+execute:
+  message: false
+  warning: false
 ---
 
 ## Setup
 
 ```{r}
-#| message: false
 library(tidyverse)
-
-# The data lives in the data/ folder at the top of the repo. From this file
-# (inside code/), that is one level up, for example:
-# d <- read_csv("../data/your-data-file.csv")
+library(scales)
+library(knitr)
 ```
 
-## Question 1
+## Question 1: New Jersey's individual market, 2000 to 2008
 
-Write your code and your answer here.
+### (a) Build the dataset
+
+The dataset comes from the New Jersey Department of Banking and Insurance
+Individual Health Coverage (IHC) data. For each year from 2000 to 2008, it has
+the monthly family premium for Horizon Blue Cross Blue Shield Plan D (\$1,000
+deductible), Aetna Plan D (\$1,000 deductible), and Celtic Plan C (\$2,500
+deductible), along with total year-end standard enrollment in the IHC program.
+The file is `nj-ihc.csv` at the top of this repository, outside the gitignored
+`data/` folder so that it is included in the submission.
+
+```{r}
+nj <- read_csv("../nj-ihc.csv")
+
+kable(nj, format.args = list(big.mark = ","),
+      col.names = c("Year", "BCBS Plan D", "Aetna Plan D", "Celtic Plan C",
+                    "Enrollment"),
+      caption = "Monthly family premiums ($) and year-end standard enrollment, NJ IHC")
+```
+
+### (b) Make the figure
+
+Premiums and enrollment are in different units, so the figure shows them in two
+panels over the same years.
+
+```{r}
+#| fig-width: 7
+#| fig-height: 6
+nj_long <- bind_rows(
+  nj %>%
+    pivot_longer(c(bcbs_plan_d, aetna_plan_d, celtic_plan_c),
+                 names_to = "series", values_to = "value") %>%
+    mutate(panel = "Monthly family premium ($)",
+           series = recode(series, bcbs_plan_d = "BCBS Plan D",
+                           aetna_plan_d = "Aetna Plan D",
+                           celtic_plan_c = "Celtic Plan C")),
+  nj %>%
+    transmute(year, series = "Enrollment", value = enrollment,
+              panel = "Year-end standard enrollment")
+)
+
+ggplot(nj_long, aes(year, value, group = series)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  geom_text(data = nj_long %>% filter(year == 2008, series != "Enrollment"),
+            aes(label = series), hjust = -0.1, size = 3.5) +
+  facet_wrap(~panel, ncol = 1, scales = "free_y") +
+  scale_x_continuous(breaks = 2000:2008, expand = expansion(mult = c(0.03, 0.18))) +
+  scale_y_continuous(labels = comma) +
+  labs(x = "Year", y = NULL,
+       title = "NJ individual market: premiums rise as enrollment falls") +
+  theme_bw()
+```
+
+```{r}
+#| include: false
+first <- nj %>% filter(year == 2000)
+last <- nj %>% filter(year == 2008)
+```
+
+All three premiums rise sharply over the period. The BCBS Plan D premium goes
+from \$`r comma(first$bcbs_plan_d)` a month in 2000 to
+\$`r comma(last$bcbs_plan_d)` in 2008, about
+`r round(last$bcbs_plan_d / first$bcbs_plan_d, 1)` times as high. Aetna rises
+from \$`r comma(first$aetna_plan_d)` to \$`r comma(last$aetna_plan_d)`, and
+Celtic from \$`r comma(first$celtic_plan_c)` to \$`r comma(last$celtic_plan_c)`,
+with Celtic's premium unchanged from 2003 on. Over the same years, year-end
+enrollment falls every year, from `r comma(first$enrollment)` to
+`r comma(last$enrollment)`, a decline of about
+`r percent(1 - last$enrollment / first$enrollment)`.
+
+### (c) Interpret it
+
+Rising premiums together with falling enrollment is what adverse selection
+predicts. The IHC program was guaranteed issue and community rated, so insurers
+had to accept every applicant and charge everyone in a plan the same premium.
+When premiums rise, the people most likely to drop coverage are the healthiest,
+who expect to use the least care and so get the least value from insurance. Their
+exit leaves a sicker and more expensive pool, which raises the insurer's average
+cost and leads to another premium increase the next year, and the cycle repeats.
+
+### (d) Verdict
+
+Other forces could produce part of this pattern. Health care costs rose across
+the whole economy in the 2000s, so some of the premium growth would have happened
+without any change in who was enrolled. The IHC market is also small, so a change
+by a single insurer, such as a new plan design or a decision to stop marketing a
+plan, can move premiums and enrollment on its own.
+
+Even so, the size of the changes points to selection. The BCBS Plan D premium
+rose about fourfold in eight years. By comparison, the average employer premium
+for family coverage rose 119% from 1999 to 2008, a little more than doubling
+([KFF Employer Health Benefits 2008 Annual Survey](https://www.kff.org/wp-content/uploads/2013/04/7790.pdf)). Meanwhile,
+enrollment fell by nearly half and kept falling every year. That combination is
+hard to explain without healthier people leaving the pool. I read it as a death
+spiral in progress, a market unraveling steadily rather than collapsing at once,
+since about `r comma(last$enrollment)` people were still enrolled in 2008.
 
 ## Question 2
 
